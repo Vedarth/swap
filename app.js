@@ -1,6 +1,5 @@
 const Express = require("express");
 const ExpressGraphQL = require("express-graphql");
-// const Mongoose = require("mongoose");
 var mongo = require('mongodb');
 const MongoClient = require('mongodb').MongoClient
 const {
@@ -18,36 +17,6 @@ var Promise = require('promise');
 
 url = 'mongodb://localhost:27017';
 const dbName = 'todolist';
-
-
-// const TaskModel = Mongoose.model("task", {
-//     check: Boolean,
-//     name: String
-// });
-
-const insertTask = function(db, name, callback) {
-    // Get the documents collection
-    const collection = db.collection('tasks');
-    // Insert some documents
-    collection.insertOne(
-      {name : name, check: false}
-    , function(err, result) {
-      assert.equal(err, null);
-      callback(result);
-    });
-  };
-
-const findTasks = function(db, callback) {
-    // Get the documents collection
-    const collection = db.collection('tasks');
-    // Find some documents
-    collection.find({}).toArray(function(err, docs) {
-      assert.equal(err, null);
-      callback(docs);
-    });
-  };
-
-
 
 const TaskType = new GraphQLObjectType({
     name: "Task",

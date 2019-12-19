@@ -1,3 +1,5 @@
+To setup the app run `npm install`
+
 To run the tests, first launch the server by running `npm start` in one terminal, then run `npm test` in another terminal.
 To play around the api open http://localhost:3000/graphql and use graphiql to query the api. Here are some suggested queries:-
 
