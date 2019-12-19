@@ -1,6 +1,8 @@
 const Express = require("express");
 const ExpressGraphQL = require("express-graphql");
-const Mongoose = require("mongoose");
+// const Mongoose = require("mongoose");
+var mongo = require('mongodb');
+const MongoClient = require('mongodb').MongoClient
 const {
     GraphQLID,
     GraphQLString,
@@ -10,15 +12,42 @@ const {
     GraphQLNonNull,
     GraphQLBoolean
 } = require("graphql");
-
+const assert = require('assert');
 var app = Express();
+var Promise = require('promise');
 
-Mongoose.connect("mongodb://localhost/todolist")
+url = 'mongodb://localhost:27017';
+const dbName = 'todolist';
 
-const TaskModel = Mongoose.model("task", {
-    check: Boolean,
-    name: String
-});
+
+// const TaskModel = Mongoose.model("task", {
+//     check: Boolean,
+//     name: String
+// });
+
+const insertTask = function(db, name, callback) {
+    // Get the documents collection
+    const collection = db.collection('tasks');
+    // Insert some documents
+    collection.insertOne(
+      {name : name, check: false}
+    , function(err, result) {
+      assert.equal(err, null);
+      callback(result);
+    });
+  };
+
+const findTasks = function(db, callback) {
+    // Get the documents collection
+    const collection = db.collection('tasks');
+    // Find some documents
+    collection.find({}).toArray(function(err, docs) {
+      assert.equal(err, null);
+      callback(docs);
+    });
+  };
+
+
 
 const TaskType = new GraphQLObjectType({
     name: "Task",
@@ -42,7 +71,17 @@ const schema = new GraphQLSchema({
             tasks: {
                 type: GraphQLList(TaskType),
                 resolve: (root, args, context, info) => {
-                    return TaskModel.find().exec();
+                    return MongoClient.connect('mongodb://localhost:27017').then(function(client) {
+                    db = client.db(dbName);
+                    var collection = db.collection('tasks');
+                    return collection.find().toArray();
+                    }).then(function(items) {
+                    console.log(items);
+                    for (item of items) {
+                        item['id'] = item['_id']
+                    }
+                    return items
+                    });
                 }
             },
             task: {
@@ -51,7 +90,16 @@ const schema = new GraphQLSchema({
                     id: { type: GraphQLNonNull(GraphQLID)}
                 },
                 resolve: (root, args, context, info) => {
-                    return TaskModel.findById(args.id).exec();
+                    return MongoClient.connect('mongodb://localhost:27017').then(function(client) {
+                    db = client.db(dbName);
+                    var collection = db.collection('tasks');
+                    console.log(args.id);
+                    return collection.findOne({ '_id': new mongo.ObjectID(args.id) });
+                    }).then(function(item) {
+                    console.log(item);
+                    item['id'] = item['_id'];
+                    return item;
+                    });
                 }
             }
         }

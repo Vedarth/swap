@@ -21,6 +21,16 @@ describe('GraphQL', () => {
             done();
         })
     }),
+    step('Returns all tasks', (done) => {
+        request.post('/graphql')
+        .send({query: '{ tasks { id name check } }'})
+        .expect(200)
+        .end((err, res) => {
+            if (err) return done(err);
+            res.body.data.should.have.property("tasks");
+            done();
+        })
+    }),
     step('Updates a task', (done) => {
         request.post('/graphql')
         .send({query: 'mutation ( $id: ID!, $check: Boolean! ){ update(id: $id, check: $check){ id, name, check } }',
@@ -32,17 +42,6 @@ describe('GraphQL', () => {
             done();
         })
     }),
-    step('Returns all tasks', (done) => {
-        request.post('/graphql')
-        .send({query: '{ tasks { id name check } }'})
-        .expect(200)
-        .end((err, res) => {
-            if (err) return done(err);
-            res.body.data.should.have.property("tasks");
-            done();
-        })
-    })
-    ,
     step('Deletes a test task', (done) => {
         request.post('/graphql')
         .send({query: 'mutation ($id: ID! ){ delete(id: $id){ id, name, check } }',
