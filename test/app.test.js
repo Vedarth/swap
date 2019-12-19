@@ -33,18 +33,18 @@ describe('GraphQL', () => {
     }),
     step('Updates a task', (done) => {
         request.post('/graphql')
-        .send({query: 'mutation ( $id: ID!, $check: Boolean! ){ update(id: $id, check: $check){ id, name, check } }',
+        .send({query: 'mutation ( $id: ID!, $check: Boolean! ){ update(id: $id, check: $check){ id, message } }',
                 variables: `{"id": "${testId}", "check": true}`})
         .expect(200)
         .end((err, res) => {
             if (err) return done(err);
-            expect(res.body.data.update.check).to.equal(true);
+            expect(res.body.data.update.message).to.equal(`Successfully updated ${testId} to true`);
             done();
         })
     }),
     step('Deletes a test task', (done) => {
         request.post('/graphql')
-        .send({query: 'mutation ($id: ID! ){ delete(id: $id){ id, name, check } }',
+        .send({query: 'mutation ($id: ID! ){ delete(id: $id){ id, message } }',
                 variables: `{"id": "${testId}"}`})
         .expect(200)
         .end((err, res) => {
