@@ -9,6 +9,7 @@ const mongo = require('mongodb');
 const MongoClient = require('mongodb').MongoClient
 url = 'mongodb://localhost:27017';
 const dbName = 'todolist';
+var { validate } = require('graphql/validation');
 
 const {
     TaskType,
@@ -79,9 +80,28 @@ const update = {
         var collection = db.collection('tasks');
         return collection.updateOne({_id : new mongo.ObjectID(args.id)}, { $set: {check: args.check}});
         }).then(function(item) {
-        item = {};
-        item['id'] = args.id;
-        item['message'] = `Successfully updated ${args.id} to ${args.check}`;
+        console.log(item.result);
+        if(item.result.n === 0) {
+            item = {};
+            item['id'] = args.id;
+            item['message'] = `${args.id} is not found`;
+        }
+        else if (item.result.n === 1 && item.result.nModified === 0) {
+            item = {}
+            item['id'] = args.id;
+            item['message'] = `${args.id} is already ${args.check}`;
+            
+        }
+        else if (item.result.n === 1 && item.result.nModified === 1) {
+            item = {};
+            item['id'] = args.id;
+            item['message'] = `Successfully updated ${args.id} to ${args.check}`;
+        }
+        else {
+            item = {};
+            item['id'] = args.id;
+            item['message'] = `Updating ${args.id} failed`;
+        }
         return item;
         });
     }
@@ -98,7 +118,6 @@ const deleteTask = {
         var collection = db.collection('tasks');
         return collection.deleteOne({_id : new mongo.ObjectID(args.id)});
         }).then(function(item) {
-        console.log(item.result.n);
         if (item.result.n === 0) {
             item = {};
             item['id'] = args.id;

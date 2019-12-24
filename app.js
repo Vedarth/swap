@@ -2,7 +2,6 @@ const Express = require("express");
 const ExpressGraphQL = require("express-graphql");
 var app = Express();
 var Promise = require('promise');
-var { validate, specifiedRules } = require('graphql/validation');
 const {
     GraphQLObjectType,
     GraphQLSchema
@@ -36,7 +35,6 @@ const schema = new GraphQLSchema({
 
 app.use("/graphql", ExpressGraphQL({
     schema: schema,
-    validationRules: specifiedRules,
     graphiql: true
 }));
 
