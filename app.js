@@ -1,19 +1,18 @@
 const Express = require("express");
 const ExpressGraphQL = require("express-graphql");
-var app = Express();
-var Promise = require('promise');
 const {
     GraphQLObjectType,
     GraphQLSchema
 } = require("graphql");
-
 const {
     tasks,
     task,
     create,
     update,
     deleteTask
-} = require('./resolver');
+} = require("./resolver");
+
+const app = Express();
 
 const schema = new GraphQLSchema({
     query: new GraphQLObjectType({

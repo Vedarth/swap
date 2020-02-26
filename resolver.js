@@ -5,12 +5,12 @@ const {
     GraphQLNonNull,
     GraphQLBoolean
 } = require("graphql");
-const mongo = require('mongodb');
-const MongoClient = require('mongodb').MongoClient
-url = 'mongodb://localhost:27017';
-const dbName = 'todolist';
-var { validate } = require('graphql/validation');
-
+const {
+    listsTasks,
+    findsTask,
+    updatesTask,
+    insertsTask,
+    deletesTask } = require("./task-model")
 const {
     TaskType,
     RespMessage
@@ -19,117 +19,91 @@ const {
 
 const tasks = {
     type: GraphQLList(TaskType),
-    resolve: (root, args, context, info) => {
-        return MongoClient.connect('mongodb://localhost:27017').then(function(client) {
-        db = client.db(dbName);
-        var collection = db.collection('tasks');
-        return collection.find().toArray();
-        }).then(function(items) {
+    resolve: async (root, args, context, info) => {
+        let items = await listsTasks();
         for (item of items) {
             item['id'] = item['_id']
         }
         return items
-        });
     }
 };
 
 const task = {
     type: TaskType,
     args: {
-        id: { type: GraphQLNonNull(GraphQLID)}
+        id: { type: GraphQLNonNull(GraphQLID) }
     },
-    resolve: (root, args, context, info) => {
-        return MongoClient.connect('mongodb://localhost:27017').then(function(client) {
-        db = client.db(dbName);
-        var collection = db.collection('tasks');
-        return collection.findOne({ _id: new mongo.ObjectID(args.id) });
-        }).then(function(item) {
+    resolve: async (root, args, context, info) => {
+        let item = await findsTask(args.id)
         item['id'] = item['_id'];
         return item;
-        });
     }
 }
 
 const create = {
     type: TaskType,
     args: {
-        name: { type: GraphQLNonNull(GraphQLString)}
+        name: { type: GraphQLNonNull(GraphQLString) }
     },
-    resolve: (root, args, context, info) => {
-        return MongoClient.connect('mongodb://localhost:27017').then(function(client) {
-        db = client.db(dbName);
-        var collection = db.collection('tasks');
-        return collection.insertOne({name : args.name, check: false});
-        }).then(function(item) {
+    resolve: async (root, args, context, info) => {
+        let item = await insertsTask({ name: args.name, check: false })
         item = item.ops[0];
         item['id'] = item['_id'];
         return item;
-        });
     }
 };
 
 const update = {
     type: RespMessage,
     args: {
-        id: {type: GraphQLNonNull(GraphQLID)},
-        check: {type: GraphQLNonNull(GraphQLBoolean)}
+        id: { type: GraphQLNonNull(GraphQLID) },
+        check: { type: GraphQLNonNull(GraphQLBoolean) }
     },
-    resolve: (root, args, context, info) => {
-        return MongoClient.connect('mongodb://localhost:27017').then(function(client) {
-        db = client.db(dbName);
-        var collection = db.collection('tasks');
-        return collection.updateOne({_id : new mongo.ObjectID(args.id)}, { $set: {check: args.check}});
-        }).then(function(item) {
-        console.log(item.result);
-        if(item.result.n === 0) {
-            item = {};
-            item['id'] = args.id;
-            item['message'] = `${args.id} is not found`;
-        }
-        else if (item.result.n === 1 && item.result.nModified === 0) {
-            item = {}
-            item['id'] = args.id;
-            item['message'] = `${args.id} is already ${args.check}`;
-            
-        }
-        else if (item.result.n === 1 && item.result.nModified === 1) {
-            item = {};
-            item['id'] = args.id;
-            item['message'] = `Successfully updated ${args.id} to ${args.check}`;
-        }
-        else {
-            item = {};
-            item['id'] = args.id;
-            item['message'] = `Updating ${args.id} failed`;
-        }
-        return item;
-        });
+    resolve: async (root, args, context, info) => {
+        let item = await updatesTask(args.id, { check: args.check })
+        let response = updateCases(item, args);
+        return response;
     }
 };
 
 const deleteTask = {
     type: RespMessage,
     args: {
-        id: {type: GraphQLNonNull(GraphQLID)}
+        id: { type: GraphQLNonNull(GraphQLID) }
     },
-    resolve: (root, args, context, info) => {
-        return MongoClient.connect('mongodb://localhost:27017').then(function(client) {
-        db = client.db(dbName);
-        var collection = db.collection('tasks');
-        return collection.deleteOne({_id : new mongo.ObjectID(args.id)});
-        }).then(function(item) {
+    resolve: async (root, args, context, info) => {
+        let item = await deletesTask(args.id)
+        let response = {};
         if (item.result.n === 0) {
-            item = {};
-            item['id'] = args.id;
-            item['message'] = `${args.id} is not found`;
+            response['id'] = args.id;
+            response['message'] = `${args.id} is not found`;
         } else {
-        item = {};
-        item['id'] = args.id;
-        item['message'] = `Successfully deleted ${args.id}`;
+            response['id'] = args.id;
+            response['message'] = `Successfully deleted ${args.id}`;
         }
-        return item;
-        });
+        return response;
     }
 };
 
-module.exports = {tasks, task, create, update, deleteTask};
+function updateCases(item, args) {
+    let response = {};
+    if (item.result.n === 0) {
+        response['id'] = args.id;
+        response['message'] = `${args.id} is not found`;
+    }
+    else if (item.result.n === 1 && item.result.nModified === 0) {
+        response['id'] = args.id;
+        response['message'] = `${args.id} is already ${args.check}`;
+    }
+    else if (item.result.n === 1 && item.result.nModified === 1) {
+        response['id'] = args.id;
+        response['message'] = `Successfully updated ${args.id} to ${args.check}`;
+    }
+    else {
+        response['id'] = args.id;
+        response['message'] = `Updating ${args.id} failed`;
+    }
+    return response
+}
+
+module.exports = { tasks, task, create, update, deleteTask };

@@ -32,4 +32,4 @@ const RespMessage = new GraphQLObjectType({
     }
 });
 
-module.exports = {TaskType, RespMessage};
+module.exports = { TaskType, RespMessage };
