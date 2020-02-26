@@ -10,7 +10,7 @@ const {
     findsTask,
     updatesTask,
     insertsTask,
-    deletesTask } = require("./task-model")
+    deletesTask } = require("../models/task-model")
 const {
     TaskType,
     RespMessage

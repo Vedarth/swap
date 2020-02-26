@@ -1,4 +1,4 @@
-const { createCollection, Collections } = require("./db");
+const { createCollection, Collections } = require("../services/db");
 const mongo = require("mongodb")
 
 const collectionTasksPromise = createCollection({
