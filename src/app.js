@@ -1,15 +1,18 @@
 const Express = require("express");
 const ExpressGraphQL = require("express-graphql");
-const { schema } = require("./graphql-api/design")
-const port = require('../config')['port']
+const { schema } = require("./graphql-api/design");
+const port = require("../config")["port"];
 
-const app = Express();
-app.use("/graphql", ExpressGraphQL({
+const express_server = Express();
+express_server.use(
+  "/graphql",
+  ExpressGraphQL({
     schema: schema,
     graphiql: true
-}));
-app.listen(port, () => {
-    console.log(`Listening at http://localhost:${port}/graphql`);
-})
+  })
+);
+express_server.listen(port, () => {
+  console.log(`Listening at http://localhost:${port}/graphql`);
+});
 
-module.exports = app;
+module.exports = express_server;

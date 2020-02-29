@@ -1,11 +1,11 @@
 const { MongoClient } = require("mongodb");
-const config = require("../../config")
+const config = require("../../config");
 
 const Collections = {
   Tasks: "tasks"
 };
 
-const connect = (DBUri) =>
+const connect = DBUri =>
   new Promise((resolve, reject) => {
     return MongoClient.connect(
       DBUri,
@@ -29,15 +29,15 @@ const connect = (DBUri) =>
   });
 
 const mongodbUri = config["services"]["mongodb"]["uri"];
-const connectionPromise = connect(mongodbUri);
+const connection_promise = connect(mongodbUri);
 
-const createCollection = async ({ name, options }) => {
-  const connection = await connectionPromise;
+const create_collection = async ({ name, options }) => {
+  const connection = await connection_promise;
   return connection.createCollection(name, options);
 };
 
 module.exports = {
   Collections,
-  createCollection,
-  connectionPromise
-}
+  create_collection,
+  connection_promise
+};
